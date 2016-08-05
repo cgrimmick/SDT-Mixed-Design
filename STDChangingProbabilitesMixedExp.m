@@ -4,6 +4,10 @@
     % consist mostly of covert condition, with an overt condition every 5
     % trials.
 
+
+setenv('PSYCH_ALLOW_DANGEROUS', '1')
+Screen('Preference', 'SkipSyncTests', 1)
+
 clear all; clc; close all;
 %%
 % Feedback sounds
@@ -71,8 +75,8 @@ initials=input('Enter initials: ','s');
 datafile = strcat('SDTChangingProbabilitiesMixed', '_', initials);
 
  %Load prelimnary data and calculate the distribution standard deviation
-cd('/e/4.1/p3/norton/ChangingCategoryProbabilities/CalibrationData');
-%cd('/Users/chrisgrimmick/Documents/Lab/MATLAB/Elyse'); % for Macbook compatibility 
+%cd('/e/4.1/p3/norton/ChangingCategoryProbabilities/CalibrationData');
+cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data/Calibration'); % for Macbook compatibility 
 
 PrelimData = strcat('Calibration_ChangingProb', '_', initials);
 load(PrelimData);
@@ -80,8 +84,8 @@ data.EllipseNoise = PreData.EllipseNoise;
 data.StdDevCombined = sqrt(2*(data.StdDev.^2+data.EllipseNoise.^2));
 
 
-cd('/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalTasks');
-%cd('/Users/chrisgrimmick/Documents/Lab/MATLAB/Elyse');
+%cd('/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalTasks');
+cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design');
 % Set-up and open screen
 grey = 128; % Background color
 whichScreen = max(Screen('Screens'));
@@ -365,7 +369,7 @@ end
                     end
                 end
             end
-            save(Temp, 'trainingData', 'data');
+            %save(Temp, 'trainingData', 'data');
         end
     
                         
@@ -534,7 +538,7 @@ end
         % Record orientation and compare to mean of the green category
         trainingData.GreenMeanEstimate(i) = 90-RotationAngle;
 
-        save(Temp, 'trainingData', 'data');
+        %save(Temp, 'trainingData', 'data');
             
     
         Screen(win, 'FillRect', grey);
@@ -617,7 +621,7 @@ end
             Screen(win, 'FillRect', grey);
             Screen('TextFont',win,'helvetica');
             Screen('TextSize',win,32);
-            text=sprintf('For the Experiment Block, you will again\ncategorize ellipses by pressing 1 or 2 on the keyboard\nwith your left hand, just as you did in the training.\n\n<Press the spacebar to continue>');
+            text=sprintf('For the Experiment Block, you will again\ncategorize ellipses by pressing 1 for RED and 2 for GREEN\njust as you did in the training.\n\n<Press the spacebar to continue>');
             [nx ny bbox] = DrawFormattedText(win,text,'center', 'center', [255 255 255]);
             Screen('Flip',win);
             while 1
@@ -630,7 +634,7 @@ end
             end
             
             FlushEvents;
-            text=sprintf('But now on every fifth trial a line will appear.\nMove the line with the mouse using your right hand,\nto where to think a RED ellipse will fall COUNTER-CLOCKWISE of the line\nand a GREEN ellipse will fall CLOCKWISE of the line.\nClick the mouse to set the line, and you will be shown an ellipse drawn\nfrom one of the categories and recieve feedback on your line placement.')
+            text=sprintf('But now on every fifth trial a line will appear.\n\nRotate the line using the mouse such that if you think a\nRED ellipse will appear it will be COUNTER-CLOCKWISE of the line and if you think a\nGREEN ellipse will appear it will be CLOCKWISE of the line.\n\nClick the mouse to set the line. You will then be shown an ellipse\nfrom one of the two categories.\n\n<Press the spacebar to continue>')
             [nx ny bbox] = DrawFormattedText(win,text,'center', 'center', [255 255 255]);
             Screen('Flip',win);
             while 1
@@ -643,7 +647,7 @@ end
             end
             
             FlushEvents;
-            text=sprintf('The probabilities of each category will NOT be the same during this portion,\nand will change over the course of the experiment.\nYou will have to take this into account during both\ncategorizing and line setting tasks.')
+            text=sprintf('The probabilities of each category will NOT necessarily be 50/50\nand will change over time.\n\nTry your best to maximize your score!')
             [nx ny bbox] = DrawFormattedText(win,text,'center', 'center', [255 255 255]);
             Screen('Flip',win);
             while 1
@@ -997,7 +1001,7 @@ end
                     end
                 end
                 
-                save(Temp, 'trainingData', 'data');
+                %save(Temp, 'trainingData', 'data');
             end
             
             
@@ -1012,7 +1016,7 @@ end
         data.CovScore = data.score; 
         data.CovScore(OvertTrialFreq:OvertTrialFreq:end) = [];
             
-        save(Temp, 'trainingData', 'data');
+        %save(Temp, 'trainingData', 'data');
         Screen(win, 'FillRect', grey);
         Screen('TextFont',win,'helvetica');
         Screen('TextSize',win,32);
@@ -1031,7 +1035,7 @@ end
 
 
 % Save the datafile
-save(datafile, 'trainingData', 'data');
+%save(datafile, 'trainingData', 'data');
 
 % % Move the datafile to the ExperimentalData folder
 % SourceFile = strcat('/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalTasks/', datafile);
