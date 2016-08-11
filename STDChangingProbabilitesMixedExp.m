@@ -5,8 +5,8 @@
     % trials.
 
 
-setenv('PSYCH_ALLOW_DANGEROUS', '1')
-Screen('Preference', 'SkipSyncTests', 1)
+%setenv('PSYCH_ALLOW_DANGEROUS', '1')
+%Screen('Preference', 'SkipSyncTests', 1)
 
 clear all; clc; close all;
 %%
@@ -25,14 +25,14 @@ beep_incorrect = a*sin(2*pi*f_incorrect*t_incorrect);
 
 % Define experimental variables
 data.NumBlocks = 1;
-data.NumTrials = 15;
-trainingData.NumTrials = 2; 
+data.NumTrials = 1200;
+trainingData.NumTrials = 200; 
 data.trial = [];
 trainingData.trial = [];
 data.StdDev = 10;
 OvertTrialFreq = 5;
 i = 1; % Previously block order
-data.PracticeTrials = 5;
+%data.PracticeTrials = 5;
 P = [.2, .35, .5, .65, .8];
 ChangeRange = [80:120];
 
@@ -75,8 +75,8 @@ initials=input('Enter initials: ','s');
 datafile = strcat('SDTChangingProbabilitiesMixed', '_', initials);
 
  %Load prelimnary data and calculate the distribution standard deviation
-%cd('/e/4.1/p3/norton/ChangingCategoryProbabilities/CalibrationData');
-cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data/Calibration'); % for Macbook compatibility 
+cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design/Data/Calibration');
+%cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data/Calibration'); % for Macbook compatibility 
 
 PrelimData = strcat('Calibration_ChangingProb', '_', initials);
 load(PrelimData);
@@ -84,8 +84,8 @@ data.EllipseNoise = PreData.EllipseNoise;
 data.StdDevCombined = sqrt(2*(data.StdDev.^2+data.EllipseNoise.^2));
 
 
-%cd('/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalTasks');
-cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design');
+cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design');
+%cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design');
 % Set-up and open screen
 grey = 128; % Background color
 whichScreen = max(Screen('Screens'));
@@ -369,7 +369,7 @@ end
                     end
                 end
             end
-            %save(Temp, 'trainingData', 'data');
+            save(Temp, 'trainingData', 'data');
         end
     
                         
@@ -538,7 +538,7 @@ end
         % Record orientation and compare to mean of the green category
         trainingData.GreenMeanEstimate(i) = 90-RotationAngle;
 
-        %save(Temp, 'trainingData', 'data');
+        save(Temp, 'trainingData', 'data');
             
     
         Screen(win, 'FillRect', grey);
@@ -568,7 +568,7 @@ end
  if RunTraining == 0
      
   
-     
+            FlushEvents;
      
             % Prelim probabilities generator
             % Precalculate p(A) and p(B) for each trial using a sample and
@@ -596,7 +596,7 @@ end
                 Probs([11 12]) = Probs([12 11]);
             end
             
-            SampleHoldLength = datasample(ChangeRange,15); % Randomly sample a hold length
+            SampleHoldLength = randsample(ChangeRange,15); % Randomly sample a hold length
             Change = 1; % Keep track of where to change in loop 
             count = 1; % Indexing hold lengths and Probs
 
@@ -624,19 +624,21 @@ end
             text=sprintf('For the Experiment Block, you will again\ncategorize ellipses by pressing 1 for RED and 2 for GREEN\njust as you did in the training.\n\n<Press the spacebar to continue>');
             [nx ny bbox] = DrawFormattedText(win,text,'center', 'center', [255 255 255]);
             Screen('Flip',win);
+            KbWait([],1);
             while 1
                 [keydown, secs, keycode, deltaSecs] = KbCheck;
                 if keydown && keycode(KbName('space'))
-                   break
+                    break
                 elseif keydown && keycode(KbName('ESCAPE'))
                     Screen('Closeall');
                 end
             end
             
-            FlushEvents;
-            text=sprintf('But now on every fifth trial a line will appear.\n\nRotate the line using the mouse such that if you think a\nRED ellipse will appear it will be COUNTER-CLOCKWISE of the line and if you think a\nGREEN ellipse will appear it will be CLOCKWISE of the line.\n\nClick the mouse to set the line. You will then be shown an ellipse\nfrom one of the two categories.\n\n<Press the spacebar to continue>')
+            
+            text=sprintf('But now on every fifth trial a line will appear.\n\nRotate the line using the mouse such that if you think a\nRED ellipse will appear it will be COUNTER-CLOCKWISE\nof the line and if you think a\nGREEN ellipse will appear it will be CLOCKWISE of the line.\n\nClick the mouse to set the line. You will then be shown an ellipse\nfrom one of the two categories.\n\n<Press the spacebar to continue>')
             [nx ny bbox] = DrawFormattedText(win,text,'center', 'center', [255 255 255]);
             Screen('Flip',win);
+            KbWait([],1); 
             while 1
                 [keydown, secs, keycode, deltaSecs] = KbCheck;
                 if keydown && keycode(KbName('space'))
@@ -646,10 +648,11 @@ end
                 end
             end
             
-            FlushEvents;
+           
             text=sprintf('The probabilities of each category will NOT necessarily be 50/50\nand will change over time.\n\nTry your best to maximize your score!')
             [nx ny bbox] = DrawFormattedText(win,text,'center', 'center', [255 255 255]);
             Screen('Flip',win);
+            KbWait([],1);
             while 1
                 [keydown, secs, keycode, deltaSecs] = KbCheck;
                 if keydown && keycode(KbName('space'))
@@ -1001,7 +1004,7 @@ end
                     end
                 end
                 
-                %save(Temp, 'trainingData', 'data');
+                save(Temp, 'trainingData', 'data');
             end
             
             
@@ -1016,7 +1019,7 @@ end
         data.CovScore = data.score; 
         data.CovScore(OvertTrialFreq:OvertTrialFreq:end) = [];
             
-        %save(Temp, 'trainingData', 'data');
+        save(Temp, 'trainingData', 'data');
         Screen(win, 'FillRect', grey);
         Screen('TextFont',win,'helvetica');
         Screen('TextSize',win,32);
@@ -1034,13 +1037,13 @@ end
         end
 
 
-% Save the datafile
-%save(datafile, 'trainingData', 'data');
+%Save the datafile
+save(datafile, 'trainingData', 'data');
 
-% % Move the datafile to the ExperimentalData folder
-% SourceFile = strcat('/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalTasks/', datafile);
-% DestinationFile = '/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalData';
-% movefile(SourceFile, DestinationFile);
+% Move the datafile to the ExperimentalData folder
+SourceFile = strcat('/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalTasks/', datafile);
+DestinationFile = '/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalData';
+movefile(SourceFile, DestinationFile);
 
 % Delete the temporary data file
 delete(Temp);
