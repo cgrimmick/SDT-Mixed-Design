@@ -73,7 +73,8 @@ ScreenWidthPix = 1024;
 % Set-up datafile
 initials=input('Enter initials: ','s');
 datafile = strcat('SDTChangingProbabilitiesMixed', '_', initials);
-
+data.name = datafile;
+data.initials = initials;
  %Load prelimnary data and calculate the distribution standard deviation
 cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design/Data/Calibration');
 %cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data/Calibration'); % for Macbook compatibility 
@@ -397,8 +398,9 @@ end
         index = R(ceil(numel(R) * rand(1,1))); % Pick a random starting orientation
         StartingOrientation = X(index);
         trainingData.RedEllipseStartingOrientation(i) = StartingOrientation;
-         %Step 1: Calculate the pixels/inch on diagonal of stimulus
-        %orientation
+        SetMouse(winrect(3)/2,winrect(4)/2,win); % force mouse to center
+      
+        %Step 1: Calculate the pixels/inch on diagonal of stimulus orientation
         Opposite = ScreenHeightInch;
         Adjacent = Opposite/atan(StartingOrientation*(pi/180));
         HeightInch = Opposite;
@@ -478,7 +480,8 @@ end
         index = R(ceil(numel(R) * rand(1,1))); % Pick a random starting orientation
         StartingOrientation = X(index);
         trainingData.GreenEllipseStartingOrientation(i) = StartingOrientation;
-
+        SetMouse(winrect(3)/2,winrect(4)/2,win); % force mouse back to center
+        
         %Step 1: Calculate the pixels/inch on diagonal of stimulus
         %orientation
         Opposite = ScreenHeightInch;
@@ -755,6 +758,7 @@ end
                     StartingOrientation = X(index);
                     data.StartingOrientation(j,i) = StartingOrientation;
                     data.TrialCondition(j,i) = 1;
+                    SetMouse(winrect(3)/2,winrect(4)/2,win); % force mouse back to center
                     % Display line
                     RotationAngle = 90-StartingOrientation;
                     Screen('DrawTexture', win, Texture1, [], [], RotationAngle); 
@@ -1038,14 +1042,16 @@ end
 
 
 %Save the datafile
+cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design/Data')
 save(datafile, 'trainingData', 'data');
 
 % Move the datafile to the ExperimentalData folder
-SourceFile = strcat('/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalTasks/', datafile);
-DestinationFile = '/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalData';
-movefile(SourceFile, DestinationFile);
+% SourceFile = strcat('/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalTasks/', datafile);
+% DestinationFile = '/e/4.1/p3/norton/ChangingCategoryProbabilities/ExperimentalData';
+% movefile(SourceFile, DestinationFile);
 
 % Delete the temporary data file
+cd .. 
 delete(Temp);
 
 end
