@@ -91,6 +91,8 @@ cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design'
 grey = 128; % Background color
 whichScreen = max(Screen('Screens'));
 [win, winrect] = Screen('OpenWindow', whichScreen, grey); % Open window
+Xcenter = winrect(3)/2;
+Ycenter = winrect(4)/2; 
 %[win, winrect] = Screen('OpenWindow', whichScreen, grey, [0 0 640 480]); % Smaller window for test
 [screenWidth, screenHeight] = Screen('WindowSize', win);
 load('GammaTableEHN'); % Saved from monitor
@@ -573,7 +575,7 @@ end
   
             FlushEvents;
      
-            % Prelim probabilities generator
+            
             % Precalculate p(A) and p(B) for each trial using a sample and
             % hold procedure
             
@@ -652,7 +654,7 @@ end
             end
             
            
-            text=sprintf('The probabilities of each category will NOT necessarily be 50/50\nand will change over time.\n\nTry your best to maximize your score!')
+            text=sprintf('The probabilities of each category will NOT necessarily be 50/50\n on either task and will change over time.\n\nTry your best to maximize your score!')
             [nx ny bbox] = DrawFormattedText(win,text,'center', 'center', [255 255 255]);
             Screen('Flip',win);
             KbWait([],1);
@@ -758,7 +760,7 @@ end
                     StartingOrientation = X(index);
                     data.StartingOrientation(j,i) = StartingOrientation;
                     data.TrialCondition(j,i) = 1;
-                    SetMouse(winrect(3)/2,winrect(4)/2,win); % force mouse back to center
+                    SetMouse(Xcenter,Ycenter,win); % force mouse back to center
                     % Display line
                     RotationAngle = 90-StartingOrientation;
                     Screen('DrawTexture', win, Texture1, [], [], RotationAngle); 
