@@ -123,7 +123,7 @@ if exist(Temp, 'file') == 2
         CurrentTrial = 1;
     else
         RunTraining = 0;
-        CurrentTrial = data.trial+1;
+        CurrentTrial = max(data.trial)+1;
     end
    
 else
