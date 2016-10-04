@@ -5,10 +5,10 @@
     % trials.
 
 
-%setenv('PSYCH_ALLOW_DANGEROUS', '1')
-%Screen('Preference', 'SkipSyncTests', 1)
+% setenv('PSYCH_ALLOW_DANGEROUS', '1')
+% Screen('Preference', 'SkipSyncTests', 1)
 
-clear all; clc; close all;
+%clear all; clc; close all;
 %%
 % Feedback sounds
 
@@ -76,8 +76,8 @@ datafile = strcat('SDTChangingProbabilitiesMixed', '_', initials);
 data.name = datafile;
 data.initials = initials;
  %Load prelimnary data and calculate the distribution standard deviation
-cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design/Data/Calibration');
-%cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data/Calibration'); % for Macbook compatibility 
+%cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design/Data/Calibration');
+cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data/Calibration'); % for Macbook compatibility 
 
 PrelimData = strcat('Calibration_ChangingProb', '_', initials);
 load(PrelimData);
@@ -85,8 +85,8 @@ data.EllipseNoise = PreData.EllipseNoise;
 data.StdDevCombined = sqrt(2*(data.StdDev.^2+data.EllipseNoise.^2));
 
 
-cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design');
-%cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design');
+%cd('/e/1.3/p2/grimmick/Documents/MATLAB/SDT Changing Probabilities/Mixed-Design');
+cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design');
 % Set-up and open screen
 grey = 128; % Background color
 whichScreen = max(Screen('Screens'));
@@ -570,11 +570,14 @@ end
  
  %% Experiment Block 
   
+ win
+ 
  if RunTraining == 0
      
   
             FlushEvents;
-     
+            
+            win
             
             % Precalculate p(A) and p(B) for each trial using a sample and
             % hold procedure
