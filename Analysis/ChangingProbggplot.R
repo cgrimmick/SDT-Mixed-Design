@@ -1,5 +1,5 @@
 plotDat <- read.csv("~/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data/SDTChangingProbabilitiesMixed_HHL.csv",header = TRUE)
-subName <- "HHL"
+subName <- "EGC"
 
 require("ggplot2")
 
@@ -55,5 +55,25 @@ gp2
 filename = paste(subName, "obsVom.png", sep = "_")  
 ggsave(filename=filename, plot=gp2, width = 6, height = 6)
 
-}
+# try plotting responses with acual probs (smoothed)
+
+x <- plotDat$CovResponse - 1
+cx <- cumsum(x)
+n <- 24
+rsum <- (cx[n+1:length(x)] - cx[1:(length(x)-n)]) / n 
+prob.choose <- rsum
+pA  <- plotDat$Cov_pA
+wind <- plotDat$wind
+trial <- plotDat$CovTrial
+resp <- plotDat$CovResponse - 1
+#trial  <- 1:960
+
+gp3 <- ggplot() +
+  geom_point(data = plotDat, aes(x = CovTrial, y=resp, colour= "Response"), size = 1.5) +
+  geom_point(data = plotDat, aes(x=wind, y=prob.choose, colour = "P(Choose A)"), size = 0.5) +
+  geom_smooth(data = plotDat, aes(x= CovTrial, y= pA, colour = "P(A)"), size = 0.5, se = FALSE, fullrange = TRUE) +
+  scale_x_continuous(expand = c(0,0), limits=c(1,1200)) + scale_y_continuous(expand = c(0,0), limits=c(0,1))
+
+
+gp3
 

@@ -6,14 +6,14 @@
 clear all; close all
 
 cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data')
- dataFiles = dir([pwd, '/*HHL.mat']); % Define data files to be loaded
+ dataFiles = dir([pwd, '/*.mat']); % Define data files to be loaded
  for f = 1:length(dataFiles);
  thisFile = dataFiles(f).name; 
 
 %thisFile = 'SDTChangingProbabilitiesMixed_HHL';
 
 load(thisFile);
-
+fileName = thisFile(1:end-4)
 
     
 OvertTrialFreq = data.OvertTrialFreq; 
@@ -26,21 +26,27 @@ trial = data.trial;
 
 pA = data.pA; % Probability of A on each trial
 pB = data.pB; % Probability of B on each trial 
+Cov_pA = pA;
+Cov_pA(OvertTrialFreq:OvertTrialFreq:end) = []; 
 muA = data.MeanSignal; %mean of category A (2)
 muB = data.MeanNoise; % mean of category B (1)
+data.response(OvertTrialFreq:OvertTrialFreq:end) = [];
+CovResponse = data.response;
 CovCatShown = data.TrialType; % category of elipse shown on each trial; Cat A = 2; Cat B = 1 
 CovCatShown(OvertTrialFreq:OvertTrialFreq:end) = []; % Category shown for covert trials
 obsCriterion = data.criterion;
 
 % Add check for criterion >90  or < -90:
 % Visual check first? 
-% critover90 = find(obsCriterion>90);
-% obsCriterion(critover90) = obsCriterion(critover90) - 180;
-%critunderneg90 = find(obsCriterion< -90);
-%obsCriterion(critunderneg90) = obsCriterion(critunderneg90) + 180;
-hhlcorr = find(obsCriterion<0);
-obsCriterion(hhlcorr) = obsCriterion(hhlcorr) + 180;
+%  critover90 = find(obsCriterion>90);
+%  obsCriterion(critover90) = obsCriterion(critover90) - 180;
+% critunderneg90 = find(obsCriterion< -90);
+% obsCriterion(critunderneg90) = obsCriterion(critunderneg90) + 180;
 
+    if strcmp('HHL',fileName)
+        hhlcorr = find(obsCriterion<0);
+        obsCriterion(hhlcorr) = obsCriterion(hhlcorr) + 180;
+    end
  
 % Step Four
     
@@ -112,11 +118,11 @@ estCriterion = zeros(936,1);
 %         end
         
         if HR(curWind) == 0 
-            HR(curWind) = 0.05;
+            HR(curWind) = 0.02;
 %             disp('HR zero')
 %             curWind
         elseif HR(curWind) == 1 
-            HR(curWind) = 0.95;
+            HR(curWind) = 0.98;
 %             disp('HR one')
 %             curWind
         end
@@ -127,20 +133,22 @@ estCriterion = zeros(936,1);
         
         if CatBtrials == 0
             disp(['No B Trials at window', num2str(curWind)])
-            FAR(curWind) = 0.049;
+            FAR(curWind) = 0.02;
+           
         end
         
          if CatAtrials == 0
             disp(['No A Trials at window', num2str(curWind)])
-            HR(curWind) = .049;
+            HR(curWind) = .02;
+           
         end
         
         if FAR(curWind) == 0 
-            FAR(curWind) = 0.049;
+            FAR(curWind) = 0.02;
 %             disp('FAR zero')
 %             curWind
         elseif FAR(curWind) == 1 
-            FAR(curWind) = 0.949;
+            FAR(curWind) = 0.98;
 %             disp('FAR one')
 %             curWind
         end   
@@ -168,13 +176,13 @@ estCriterion = zeros(936,1);
         
         
         % 2 STD Hack 
-        if (HR(curWind)==0.95) && (FAR(curWind) == .049) % Criterion moved far past mean of B 
-           estCriterion(curWind) = data.MeanNoise + 20;
-           disp('past noise')
-        elseif (HR(curWind)==0.05) && (FAR(curWind) == .049)
-            estCriterion(curWind) = data.MeanSignal - 20;
-            disp('to past signal')
-        end
+%         if (HR(curWind)==0.98) && (FAR(curWind) == .02) % Criterion moved far past mean of B 
+%            estCriterion(curWind) = data.MeanNoise + 20;
+%            disp(['past noise', num2str(curWind)])
+%         elseif (HR(curWind)==0.02) && (FAR(curWind) == .02)
+%             estCriterion(curWind) = data.MeanSignal - 20;
+%              disp(['past signal', num2str(curWind)])
+%         end
  end
         
         
@@ -208,39 +216,41 @@ estCriterion = zeros(936,1);
     CovOmCrit = omCriterion;
     CovOmCrit(OvertTrialFreq:OvertTrialFreq:end) = [];
     CovOmCrit(end-(winSize-1):end) = [];
-    return
+    %return
     % Plot
     
-    figure(1)
-    plot(trial,omCriterion,'k--',wind,estCriterion,'bo',OvTrial,obsCriterion,'ro')
-    
-    
-    figure(2)
-    
-    fitrange = [min(obsCriterion):max(obsCriterion)];
-    
-    CovCritFit = polyfit(CovOmCrit,estCriterion,1);
-    Cov_yfit = CovCritFit(1)*(fitrange) + CovCritFit(2);
-    OvCritFit = polyfit(OvOmCrit,obsCriterion,1);
-    Ov_yfit = OvCritFit(1)*(fitrange) + OvCritFit(2);
-    
-     plot(fitrange,Cov_yfit,'b--',CovOmCrit,estCriterion,'bo'...
-     ,fitrange,Ov_yfit,'r--', OvOmCrit,obsCriterion,'ro')
+%     figure(1)
+%     plot(trial,omCriterion,'k--',wind,estCriterion,'bo',OvTrial,obsCriterion,'ro')
+%     
+%     
+%     figure(2)
+%     
+%     fitrange = [min(obsCriterion):max(obsCriterion)];
+%     
+%     CovCritFit = polyfit(CovOmCrit,estCriterion,1);
+%     Cov_yfit = CovCritFit(1)*(fitrange) + CovCritFit(2);
+%     OvCritFit = polyfit(OvOmCrit,obsCriterion,1);
+%     Ov_yfit = OvCritFit(1)*(fitrange) + OvCritFit(2);
+%     
+%      plot(fitrange,Cov_yfit,'b--',CovOmCrit,estCriterion,'bo'...
+%      ,fitrange,Ov_yfit,'r--', OvOmCrit,obsCriterion,'ro')
        
  
-%  
-%     SDT_MixedPlot.omCrit = omCriterion;
-%     SDT_MixedPlot.estCrit = estCriterion;
-%     SDT_MixedPlot.obsCrit = obsCriterion;
-%     SDT_MixedPlot.trial = trial;
-%     SDT_MixedPlot.OvTrial = OvTrial;
-%     SDT_MixedPlot.wind = wind;
-%     SDT_MixedPlot.CovOmCrit = CovOmCrit;
-%     SDT_MixedPlot.OvOmCrit = OvOmCrit;
-%     
-%     
-%     fileName = thisFile(1:end-4)
-%     struct2csv(SDT_MixedPlot,[fileName,'.csv'])
+ 
+    SDT_MixedPlot.omCrit = omCriterion;
+    SDT_MixedPlot.estCrit = estCriterion;
+    SDT_MixedPlot.obsCrit = obsCriterion;
+    SDT_MixedPlot.trial = trial;
+    SDT_MixedPlot.OvTrial = OvTrial;
+    SDT_MixedPlot.CovTrial = CovTrial;
+    SDT_MixedPlot.wind = wind;
+    SDT_MixedPlot.CovOmCrit = CovOmCrit;
+    SDT_MixedPlot.OvOmCrit = OvOmCrit;
+    SDT_MixedPlot.CovResponse = CovResponse
+    SDT_MixedPlot.Cov_pA = Cov_pA;
+    
+   
+    struct2csv(SDT_MixedPlot,[fileName,'.csv'])
     
     
     
