@@ -85,8 +85,8 @@ for curWind = 1:(NumCovTrials-winSize)
 end
 
 % Normalize
-Z_Hit = -norminv(HR);
-Z_FA = -norminv(FAR);
+Z_Hit = norminv(HR);
+Z_FA = norminv(FAR);
 
 % Compute bias
 c = exp(.5*(Z_FA.^2-Z_Hit.^2));
@@ -108,7 +108,7 @@ figure(1); hold on;
 plot(trial, omCriterion, '--k', 'linewidth', 3); % Omniscient criterion as a fct of trial
 plot(OvTrial, obsCriterion, 'or'); % Overt-criterion as a fct of trial
 plot(wind,estCriterion,'ob'); % Estimated criterion as a fct of trial
-legend('
+legend('Omnicient criterion', 'Overt criterion', 'Covert criterion')
 xlabel('Trial number');
 ylabel('Orientation (deg)');
 hold off;
@@ -150,6 +150,15 @@ scatter(CovTrial, catResp, 'ob');
 axis([0 numel(trial) 0 1]);
 xlabel('Trial number');
 ylabel('P(A)');
+hold off;
+
+% Plot surface for HR, FAR, and bias ratio
+figure(4); hold on;
+plot3(FAR, HR, c, 'og');
+plot3(FAR, HR, ones(size(c)), '.k');
+xlabel('FAR');
+ylabel('HR');
+zlabel('Bias ratio (c)');
 hold off;
 
 SDT_MixedPlot.omCrit = omCriterion;
