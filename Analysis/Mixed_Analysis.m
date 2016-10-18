@@ -1,12 +1,22 @@
 % SDT Mixed experiment design analysis and plotting
 % Covert and Overt analyses are done separately and combined in plot.
 % Separated scripts for scratch.
-%
 
 clear all; close all
+cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data')  
+    
+% Ask for options for running of script
+subj = upper(input('Subject initials (ALL to run all files): ', 's'));
+plot_opt = input('Plot data? y/n: ', 's');
+save_opt = input('Save data to csv? y/n: ', 's');
 
-cd('/Users/chrisgrimmick/Documents/Lab/Landy/SDT-Changing-Probabilities/Mixed-Design/Data')
- dataFiles = dir([pwd, '/*.mat']); % Define data files to be loaded
+if strcmp(subj,'ALL')
+    dataFiles = dir([pwd, '/*.mat']); % Define data files to be loaded
+else
+    dataFiles = dir([pwd, '/*' ,subj, '.mat']);
+end
+
+
  for f = 1:length(dataFiles);
  thisFile = dataFiles(f).name; 
 
@@ -37,11 +47,11 @@ CovCatShown(OvertTrialFreq:OvertTrialFreq:end) = []; % Category shown for covert
 obsCriterion = data.criterion;
 
 % Add check for criterion >90  or < -90:
-% Visual check first? 
-%  critover90 = find(obsCriterion>90);
-%  obsCriterion(critover90) = obsCriterion(critover90) - 180;
-% critunderneg90 = find(obsCriterion< -90);
-% obsCriterion(critunderneg90) = obsCriterion(critunderneg90) + 180;
+% Visual check first
+ critover90 = find(obsCriterion>90);
+ obsCriterion(critover90) = obsCriterion(critover90) - 180;
+critunderneg90 = find(obsCriterion< -90);
+obsCriterion(critunderneg90) = obsCriterion(critunderneg90) + 180;
 
     if strcmp('HHL',fileName)
         hhlcorr = find(obsCriterion<0);
@@ -81,13 +91,26 @@ estCriterion = zeros(936,1);
         CatAtrials = sum(CovCatShown(curWind:windEnd)==2); % Signal trials
         CatBtrials = sum(CovCatShown(curWind:windEnd)==1); % Noise trials
         
+        
+         % Make sure you aren't dividing by 0!
+        if CatBtrials == 0
+            CatBtrials = 1;
+        end
+
+        if CatAtrials == 0
+            CatAtrials = 1;
+        end
+        
         windCatA(curWind) = CatAtrials;
         windCatB(curWind) = CatBtrials;
         
        
-        % Calculate hit rate
-        HR(curWind) = ((Hits(curWind))./CatAtrials);    
+         % Calculate hit and false alarm rates
+        HR(curWind) = ((Hits(curWind))./CatAtrials);  
         FAR(curWind) = ((FalseAlarms(curWind))./CatBtrials); 
+        
+        
+        
         
 %         
 %         if HR(curWind)==0 && FAR(curWind)== 0
@@ -102,10 +125,8 @@ estCriterion = zeros(936,1);
         %end
         
         
-        if HR(curWind)==FAR(curWind)
-%             disp('HR equals FAR')
-%             curWind
-        end
+        
+    
         
         % Cheat for keeping bias from being 0 and criterion going to (-)Inf
 %         if (norminv(HR(curWind))) + norminv(FAR(curWind)) == 0
@@ -116,42 +137,47 @@ estCriterion = zeros(936,1);
 %             HR(curWind) = HR(curWind) - .05 ;
 %             HR(curWind) 
 %         end
+      
+
+% Make sure HR and FAR aren't 0 or 1
+    if HR(curWind) == 0 
+        HR(curWind) = 0.02;
+    elseif HR(curWind) == 1 
+        HR(curWind) = 0.98;
+    end
+    
+    if FAR(curWind) == 0 
+        FAR(curWind) = 0.02;
+    elseif FAR(curWind) == 1 
+        FAR(curWind) = 0.98;
+    end
+    
+
         
-        if HR(curWind) == 0 
-            HR(curWind) = 0.02;
-%             disp('HR zero')
-%             curWind
-        elseif HR(curWind) == 1 
-            HR(curWind) = 0.98;
-%             disp('HR one')
-%             curWind
-        end
         
         
         
-        % Calculate false alarm rate
-        
-        if CatBtrials == 0
-            disp(['No B Trials at window', num2str(curWind)])
-            FAR(curWind) = 0.02;
-           
-        end
-        
-         if CatAtrials == 0
-            disp(['No A Trials at window', num2str(curWind)])
-            HR(curWind) = .02;
-           
-        end
-        
-        if FAR(curWind) == 0 
-            FAR(curWind) = 0.02;
-%             disp('FAR zero')
-%             curWind
-        elseif FAR(curWind) == 1 
-            FAR(curWind) = 0.98;
-%             disp('FAR one')
-%             curWind
-        end   
+%         if CatBtrials == 0
+%             disp(['No B Trials at window', num2str(curWind)])
+%             FAR(curWind) = 0.02;
+%            
+%         end
+%         
+%          if CatAtrials == 0
+%             disp(['No A Trials at window', num2str(curWind)])
+%             HR(curWind) = .02;
+%            
+%         end
+%         
+%         if FAR(curWind) == 0 
+%             FAR(curWind) = 0.02;
+%              disp('FAR zero')
+%              curWind
+%         elseif FAR(curWind) == 1 
+%             FAR(curWind) = 0.98;
+%              disp('FAR one')
+%              curWind
+%         end    
         
         
        
@@ -207,54 +233,88 @@ estCriterion = zeros(936,1);
     %CovTrial(end-(winSize-1):end) = [];  
     % Step 9 
     
-    omCriterion = (((data.StdDevCombined^2)*log(omBias))/(muB-muA)) + ((muB + muA)/2);
-     
-%     estCriterion = (((data.StdDevCombined^2)*log(c))/(muB-muA)) + ((muB + muA)/2);
-%     estCriterion(find((FAR==.049)&(HR==.95)))= -estCriterion(find((FAR==.049)&(HR==.049)))
-    OvOmCrit = omCriterion(OvertTrialFreq:OvertTrialFreq:end);
+   omCriterion = (data.StdDevCombined^2)*log(omBias)/(muB-muA) + ((muB + muA)/2);
+estCriterion = (data.StdDevCombined^2)*log(c)/(muB-muA) + ((muB + muA)/2);
+
+OvOmCrit = omCriterion(OvertTrialFreq:OvertTrialFreq:end);
+CovOmCrit = omCriterion;
+CovOmCrit(OvertTrialFreq:OvertTrialFreq:end) = [];
+CovOmCrit = CovOmCrit(12:960-13);
+
+% Smooth Data
+catResp = double(data.catResponse==2); % A - 1, B - 0
+smoothCatResp = smooth(catResp, 24);
+smoothProbA = smooth(pA, 30);
+StdCombined = data.StdDevCombined;
+neutralCriterion = .5*(muB+muA);
+diffMu = muB-muA;
+    % Infer pA_obs from observed criterion in the overt-criterion task
+pA_obs = exp(diffMu.*(obsCriterion-neutralCriterion)./StdCombined)./(1+exp(diffMu.*(obsCriterion-neutralCriterion)./StdCombined));
+
+
+
+% Compute the slope of the line fit to the observed/estimated vs. ominiscient criterion
+fitrange = -150:150;
+CovCritFit = polyfit(CovOmCrit,estCriterion,1);
+Cov_yfit = CovCritFit(1)*(fitrange) + CovCritFit(2);
+OvCritFit = polyfit(OvOmCrit,obsCriterion,1);
+Ov_yfit = OvCritFit(1)*(fitrange) + OvCritFit(2);
+
+if strcmp(plot_opt,'y')
     
-    CovOmCrit = omCriterion;
-    CovOmCrit(OvertTrialFreq:OvertTrialFreq:end) = [];
-    CovOmCrit(end-(winSize-1):end) = [];
-    %return
-    % Plot
+    % Plot estimated, observed, and omniscient criterion as a function of trial
+    figure(1); hold on;
+    plot(trial, omCriterion, '--k', 'linewidth', 3); % Omniscient criterion as a fct of trial
+    plot(OvTrial, obsCriterion, 'or'); % Overt-criterion as a fct of trial
+    plot(wind,estCriterion,'ob'); % Estimated criterion as a fct of trial
+    legend('Omnicient criterion', 'Overt criterion', 'Covert criterion');
+    xlabel('Trial number');
+    ylabel('Orientation (deg)');
+    hold off;
     
-%     figure(1)
-%     plot(trial,omCriterion,'k--',wind,estCriterion,'bo',OvTrial,obsCriterion,'ro')
-%     
-%     
-%     figure(2)
-%     
-%     fitrange = [min(obsCriterion):max(obsCriterion)];
-%     
-%     CovCritFit = polyfit(CovOmCrit,estCriterion,1);
-%     Cov_yfit = CovCritFit(1)*(fitrange) + CovCritFit(2);
-%     OvCritFit = polyfit(OvOmCrit,obsCriterion,1);
-%     Ov_yfit = OvCritFit(1)*(fitrange) + OvCritFit(2);
-%     
-%      plot(fitrange,Cov_yfit,'b--',CovOmCrit,estCriterion,'bo'...
-%      ,fitrange,Ov_yfit,'r--', OvOmCrit,obsCriterion,'ro')
-       
- 
- 
+    % Plot observed/estimated vs. omnicient
+    figure(2); hold on;
+    plot(CovOmCrit, estCriterion, 'ob');
+    plot(OvOmCrit, obsCriterion, 'or');
+    plot(fitrange, Cov_yfit, '-b', 'linewidth', 3);
+    plot(fitrange, Ov_yfit, '-r', 'linewidth', 3);
+    legend('Covert criterion', 'Overt criterion', 'Covert fit', 'Overt fit');
+    plot(fitrange, fitrange, '--k', 'linewidth', .5);
+    xlabel('Omniscient criterion (deg)');
+    ylabel('Measured criterion (deg)');
+    hold off;
+
+    % Plot a moving-average of choice as a function of trial
+
+    figure(3); hold on;
+    plot(CovTrial, smoothCatResp, '-b', 'linewidth', 3);
+    plot(trial, smoothProbA, '-k', 'linewidth', 3);
+    plot(OvTrial, smooth(pA_obs, 6), '-r', 'linewidth', 3);
+    scatter(CovTrial, catResp, 'ob');
+    axis([0 numel(trial) 0 1]);
+    xlabel('Trial number');
+    ylabel('P(A)');
+    hold off;
+end
+
+if strcmp(save_opt,'y')
+    % Save data to struct and export to csv
     SDT_MixedPlot.omCrit = omCriterion;
     SDT_MixedPlot.estCrit = estCriterion;
     SDT_MixedPlot.obsCrit = obsCriterion;
     SDT_MixedPlot.trial = trial;
     SDT_MixedPlot.OvTrial = OvTrial;
-    SDT_MixedPlot.CovTrial = CovTrial;
     SDT_MixedPlot.wind = wind;
     SDT_MixedPlot.CovOmCrit = CovOmCrit;
     SDT_MixedPlot.OvOmCrit = OvOmCrit;
-    SDT_MixedPlot.CovResponse = CovResponse
-    SDT_MixedPlot.Cov_pA = Cov_pA;
     
-   
     struct2csv(SDT_MixedPlot,[fileName,'.csv'])
+end
     
     
     
 end
+    
     
     
     
