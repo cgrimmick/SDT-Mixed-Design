@@ -48,6 +48,17 @@ obsCriterion = data.criterion;
 
 % Add check for criterion >90  or < -90:
 % Visual check first
+
+%  critover90 = find(obsCriterion>90);
+%  obsCriterion(critover90) = obsCriterion(critover90) - 180;
+% critunderneg90 = find(obsCriterion< -90);
+% obsCriterion(critunderneg90) = obsCriterion(critunderneg90) + 180;
+% 
+%     if strcmp('HHL',fileName)
+%         hhlcorr = find(obsCriterion<0);
+%         obsCriterion(hhlcorr) = obsCriterion(5hhlcorr) + 180;
+%     end
+
  critover90 = find(obsCriterion>90);
  obsCriterion(critover90) = obsCriterion(critover90) - 180;
 critunderneg90 = find(obsCriterion< -90);
@@ -57,6 +68,7 @@ obsCriterion(critunderneg90) = obsCriterion(critunderneg90) + 180;
         hhlcorr = find(obsCriterion<0);
         obsCriterion(hhlcorr) = obsCriterion(hhlcorr) + 180;
     end
+
  
 % Step Four
     
@@ -68,7 +80,8 @@ HR = zeros((NumCovTrials-winSize),1);
 CovScore = data.CovScore;
 c = zeros(936,1);
 estCriterion = zeros(936,1);
- 
+hackWind = [];
+hw = 1; 
     % Step 5; mixed window be 24 trials; plot estCriterion at trial 14.
     % Plot overt crit in different color every 5; full window is 30.
     
@@ -95,10 +108,14 @@ estCriterion = zeros(936,1);
          % Make sure you aren't dividing by 0!
         if CatBtrials == 0
             CatBtrials = 1;
+            hackWind(hw) = curWind;
+            hw = hw + 1;
         end
 
         if CatAtrials == 0
             CatAtrials = 1;
+            hackWind(hw) = curWind;
+            hw = hw + 1;
         end
         
         windCatA(curWind) = CatAtrials;
@@ -142,21 +159,32 @@ estCriterion = zeros(936,1);
 % Make sure HR and FAR aren't 0 or 1
     if HR(curWind) == 0 
         HR(curWind) = 0.02;
+        hackWind(hw) = curWind;
+        hw = hw + 1;
+    elseif HR(curWind) == 1 
+        HR(curWind) = 0.98;
+        hackWind(hw) = curWind;
+        hw = hw + 1;
     elseif HR(curWind) == 1 
         HR(curWind) = 0.98;
     end
     
     if FAR(curWind) == 0 
         FAR(curWind) = 0.02;
+        hackWind(hw) = curWind;
+        hw = hw + 1;
     elseif FAR(curWind) == 1 
         FAR(curWind) = 0.98;
+        hackWind(hw) = curWind;
+        hw = hw + 1;
+
+    elseif FAR(curWind) == 1 
+        FAR(curWind) = 0.98;
+
     end
     
 
-        
-        
-        
-        
+       
 %         if CatBtrials == 0
 %             disp(['No B Trials at window', num2str(curWind)])
 %             FAR(curWind) = 0.02;
@@ -182,12 +210,12 @@ estCriterion = zeros(936,1);
         
        
         
-        Z_Hit = norminv(HR(curWind));
-        Z_FA = norminv(FAR(curWind));
+        %Z_Hit = norminv(HR(curWind));
+        %Z_FA = norminv(FAR(curWind));
         
        
         
-        c(curWind) = exp(.5*(Z_Hit.^2-Z_FA.^2));
+       % c(curWind) = exp(.5*(Z_Hit.^2-Z_FA.^2));
          % flip hack: redefine bias in terms of rejects and misses
 %         if (HR(curWind)==0.05) && (FAR(curWind) == .049)
 %             CRR = .99;
@@ -198,7 +226,7 @@ estCriterion = zeros(936,1);
 %             'flip'
 %             curWind
 %         end
-        estCriterion(curWind) = (((data.StdDevCombined^2)*log(c(curWind)))/(muB-muA)) + ((muB + muA)/2);
+        %estCriterion(curWind) = (((data.StdDevCombined^2)*log(c(curWind)))/(muB-muA)) + ((muB + muA)/2);
         
         
         % 2 STD Hack 
@@ -217,23 +245,27 @@ estCriterion = zeros(936,1);
     
     %end
 
-%     Z_Hit = norminv(HR);
-%     Z_FA = norminv(FAR);
-%     
-%     c = exp(.5*(Z_Hit.^2-Z_FA.^2));
+Z_Hit = norminv(HR);
+Z_FA = norminv(FAR);
+    
+c = exp(.5*(Z_Hit.^2-Z_FA.^2));
     
     
     
-    omBias = pA./pB;
-    %omBiasCov(OvertTrialFreq:OvertTrialFreq:end) = []; 
-    %omBiasCov(end-(winSize-1):end) = [];
-    omBiasOv = pA./pB;
-    omBiasOv = omBiasOv(OvertTrialFreq:OvertTrialFreq:end); 
-    wind = CovTrial(12:end-13);
-    %CovTrial(end-(winSize-1):end) = [];  
-    % Step 9 
-    
+
+omBias = pA./pB;
+%omBiasCov(OvertTrialFreq:OvertTrialFreq:end) = []; 
+%omBiasCov(end-(winSize-1):end) = [];
+omBiasOv = pA./pB;
+omBiasOv = omBiasOv(OvertTrialFreq:OvertTrialFreq:end); 
+wind = CovTrial(12:end-13);
+%CovTrial(end-(winSize-1):end) = [];  
+% Step 9 
+
+omCriterion = (data.StdDevCombined^2)*log(omBias)/(muB-muA) + ((muB + muA)/2);
+
    omCriterion = (data.StdDevCombined^2)*log(omBias)/(muB-muA) + ((muB + muA)/2);
+
 estCriterion = (data.StdDevCombined^2)*log(c)/(muB-muA) + ((muB + muA)/2);
 
 OvOmCrit = omCriterion(OvertTrialFreq:OvertTrialFreq:end);
@@ -251,6 +283,7 @@ diffMu = muB-muA;
     % Infer pA_obs from observed criterion in the overt-criterion task
 pA_obs = exp(diffMu.*(obsCriterion-neutralCriterion)./StdCombined)./(1+exp(diffMu.*(obsCriterion-neutralCriterion)./StdCombined));
 
+smoothpA_obs = smooth(pA_obs, 6);
 
 
 % Compute the slope of the line fit to the observed/estimated vs. ominiscient criterion
@@ -295,6 +328,20 @@ if strcmp(plot_opt,'y')
     xlabel('Trial number');
     ylabel('P(A)');
     hold off;
+
+    
+    
+    % Plot surface for HR, FAR, and bias ratio
+    figure(4); hold on;
+    plot3(FAR, HR, c, 'og');
+    plot3(FAR, HR, ones(size(c)), '.k');
+    plot3(FAR(hackWind), HR(hackWind), c(hackWind), '*r')
+    xlabel('FAR');
+    ylabel('HR');
+    zlabel('Bias ratio (c)');
+    hold off;
+
+
 end
 
 if strcmp(save_opt,'y')
@@ -307,7 +354,16 @@ if strcmp(save_opt,'y')
     SDT_MixedPlot.wind = wind;
     SDT_MixedPlot.CovOmCrit = CovOmCrit;
     SDT_MixedPlot.OvOmCrit = OvOmCrit;
-    
+
+    SDT_MixedPlot.catResp = catResp;
+    SDT_MixedPlot.smoothCatResp = smoothCatResp;
+    SDT_MixedPlot.smoothProbA = smoothProbA;
+    SDT_MixedPlot.smoothpA_obs = smoothpA_obs;
+    SDT_MixedPlot.bias = c;
+    SDT_MixedPlot.FAR = FAR;
+    SDT_MixedPlot.HR = HR;
+    SDT_MixedPlot.hackWind = hackWind;
+
     struct2csv(SDT_MixedPlot,[fileName,'.csv'])
 end
     
