@@ -82,6 +82,14 @@ for curWind = 1:(NumCovTrials-winSize)
     elseif FAR(curWind) == 1 
         FAR(curWind) = 0.98;
     end
+    
+%     if and(FAR(curWind) == .98, HR(curWind) == .98)
+%         HR(curWind) = .98;
+%         FAR(curWind) = .15;
+%     elseif and(FAR(curWind) == .02, HR(curWind) == .02)
+%         HR(curWind) = .15;
+%         FAR(curWind) = .98;
+%     end
 end
 
 % Normalize
@@ -90,13 +98,16 @@ Z_FA = norminv(FAR);
 
 % Compute bias
 c = exp(.5*(Z_FA.^2-Z_Hit.^2));
+standardZ = -(Z_Hit+Z_FA)/2;
+approxZ = standardZ.*data.StdDevCombined + .5*(muB+muA);
 omBias = pA./pB;
 omBiasOv = omBias(OvertTrialFreq:OvertTrialFreq:end); 
 wind = CovTrial(12:end-13);
   
 % Compute criterion
 omCriterion = (data.StdDevCombined^2)*log(omBias)/(muB-muA) + ((muB + muA)/2);
-estCriterion = (data.StdDevCombined^2)*log(c)/(muB-muA) + ((muB + muA)/2);
+%estCriterion = (data.StdDevCombined^2)*log(c)/(muB-muA) + ((muB + muA)/2);
+estCriterion = approxZ;
 
 OvOmCrit = omCriterion(OvertTrialFreq:OvertTrialFreq:end);
 CovOmCrit = omCriterion;
