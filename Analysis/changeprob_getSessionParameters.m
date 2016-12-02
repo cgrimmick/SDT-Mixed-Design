@@ -1,4 +1,4 @@
-function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = changeprob_getSessionParameters(data, task, parameters)
+function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = changeprob_getSessionParameters(data, task, parameters, mixed)
 %CHANGEPROB_GETSESSIONPARAMETERS Gets session parameters from an existing
 %data struct or creates a fake dataset
 
@@ -9,6 +9,7 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
         % parameters used to generate fake data
             % parameters(1): sensory noise (sigma_ellipse)
             % parameters(2): adjustment noise (sigma_criterion)
+        % mixed: 0 - split design (default), 1 – mixed design
 %   OUTPUT:
         % NumTrials: total number of trials
         % sigma_ellipse: sensory noise from calibration data
@@ -26,16 +27,24 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
 %   Date: 10/18/16
 %   email: elyse.norton@gmail.com
         
+
+% Does ordering for mixed work or does it need to be independent?
+
     switch nargin
         case 0
             data = [];
             task = 1;
             parameters = [];
+            mixed = 0;
         case 1
             task = 1;
             parameters = [];
+            mixed = 0;
         case 2
             parameters = [];
+            mixed = 0;
+        case 3
+            mixed = 0;
     end
 
     switch numel(parameters)
@@ -50,6 +59,8 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
     end
     
     if ~isempty(data)
+        if mixed == 0;
+            
         col = data.SessionOrder(task);     % Column of overt-criterion task
         NumTrials = data.NumTrials;    
 
@@ -79,6 +90,32 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
                 resp = double(resp);
         end
         score = data.Score(:,col);
+        
+        elseif mixed == 1;
+                    NumTrials = data.NumTrials;    
+
+        % Noise parameters
+        sigma_s = data.StdDev;
+        if isempty(sigma_ellipse) || ~isfinite(sigma_ellipse); sigma_ellipse = data.EllipseNoise; end
+        sigma = sqrt(sigma_s^2 + sigma_ellipse^2);
+
+        % Category information 
+        % (in the data Category B/Red/Noise is coded as 1, Category A/Green/Signal is coded as 2)
+        C = (data.TrialType == 2);        % Category A/Green/Signal
+        C = double(C);
+        p_true = data.pA;
+        mu = [data.MeanSignal,data.MeanNoise];
+
+        % Shift coordinate system to zero
+        mu_bar = mean(mu);  
+        mu = mu - mu_bar;
+        S = data.TrueAngle - mu_bar; 
+
+        % Get task-relevant responses
+        resp = data.response; 
+        score = data.score;
+        end
+            
     else  
         % Create fake data
         NumTrials = 800;
