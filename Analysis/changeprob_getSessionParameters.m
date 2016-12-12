@@ -5,7 +5,7 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
 %   INPUT: 
         % data
             % Experimental data struct to be decomposed
-        % task: 1 - overt (default), 2 - covert, 3 – mixed
+        % task: 1 - overt (default), 2 - covert, 3 - mixed
         % parameters used to generate fake data
             % parameters(1): sensory noise (sigma_ellipse)
             % parameters(2): adjustment noise (sigma_criterion)
@@ -16,15 +16,15 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
         % mu: vector containing the category means [muA, muB]
         % sigma: std dev of the internal distributions - sqrt(sigma_s^2 +
         % sigma_v^2)
-        % C: vector of category values
-        % S: vector of true stimulus angles
+        % C: vector of category values (0 - A, 1 - B)
+        % S: vector of true stimulus orientations
         % p_true: vector containing the probability of A
-        % resp: vector containing the fake observer's criterion setting 
-        % (overt task) or categorizations (both for mixed)
+        % resp: vector containing the observer's criterion setting 
+        % (overt task), categorizations (covert), or both (mixed)
         % score: 0 - wrong, 1 - correct
         
 %   Author: Elyse Norton
-%   Date: 10/18/16
+%   Date: 12/12/16
 %   email: elyse.norton@gmail.com
         
 
@@ -52,10 +52,7 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
     end
     
     if ~isempty(data)
-       
-        
-        if task == 3;
-            
+        if task == 3
             NumTrials = data.NumTrials;    
             
             % Noise parameters
@@ -72,15 +69,16 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
 
             % Shift coordinate system to zero
             mu_bar = mean(mu);  
-            mu = mu - mu_bar;
-            S = data.TrueAngle - mu_bar; 
+            mu = bsxfun(@minus, mu, mu_bar);
+            S = bsxfun(@minus, data.TrueAngle, mu_bar); 
 
             % Get task-relevant responses
             resp = data.response; 
+            % Shift coordinate system for criterion responses
+            I_overt = 5:5:NumTrials;
+            resp(I_overt) = bsxfun(@minus, resp(I_overt), mu_bar);
             score = data.score;
-       
-        else
-            
+        else  
             col = data.SessionOrder(task);     % Column of overt-criterion task
             NumTrials = data.NumTrials;    
 
@@ -98,21 +96,19 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
 
             % Shift coordinate system to zero
             mu_bar = mean(mu);
-            mu = mu - mu_bar;
-            S = data.StimulusAngle(:,col) - mu_bar;
+            mu = bsxfun(@minus, mu, mu_bar);
+            S = bsxfun(@minus, data.StimulusAngle(:,col), mu_bar);
 
             % Get task-relevant responses
             switch task
                 case 1  % Overt-criterion task    
-                    resp = data.Criterion(:,col) - mu_bar;   % Reported criterion
+                    resp = bsxfun(@minus, data.Criterion(:,col), mu_bar);   % Reported criterion
                 case 2  % Covert-criterion task
                     resp = data.Response(:,col) == 2;
                     resp = double(resp);
             end
             score = data.Score(:,col);
-        
-       end
-            
+        end   
     else  
         % Create fake data
         NumTrials = 800;
@@ -136,11 +132,11 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
         p_true = p_true(1:NumTrials);
 
         % Generate stimuli based on category labels
-        S = mu(C)' + sigma_s*randn(NumTrials,1);
-        X = S + sigma_ellipse*randn(NumTrials,1);
+        S = bsxfun(@plus, mu(C)', sigma_s*randn(NumTrials,1));
+        X = bsxfun(@plus, S, sigma_ellipse*randn(NumTrials,1));
 
         % Responses based on fixed criterion (fixed at the neutral criterion)
-        z_resp = mean(mu) + sigma_criterion*randn(NumTrials,1);
+        z_resp = bsxfun(@plus, mean(mu), sigma_criterion*randn(NumTrials,1));
         resp(:,1) = z_resp;
 
         Chat = ones(NumTrials,1);
@@ -153,7 +149,7 @@ function [NumTrials, sigma_ellipse, mu, sigma, C, S, p_true, resp, score] = chan
         % Score
         scoreOvert = zeros(NumTrials, 1);
         I = find(or(and(C == 1, S <= z_resp), and(C == 2, S > z_resp)));
-        scoreOvert(I) = scoreOvert(I)+1;
+        scoreOvert(I) = bsxfun(@plus, scoreOvert(I), 1);
         score(:,1) = scoreOvert;
 
         scoreCovert = zeros(NumTrials, 1);
